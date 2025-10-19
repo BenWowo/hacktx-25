@@ -16,7 +16,7 @@ import {
 	Briefcase,
 	TrendingUp,
 } from "lucide-react";
-import type { FormData } from "@/app/home/page";
+import type { FormData } from "@/app/page";
 
 type FormPageProps = {
 	onSubmit: (data: FormData) => void;

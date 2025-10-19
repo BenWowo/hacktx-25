@@ -9,7 +9,7 @@ import {
 } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Check, Home, DollarSign, Calendar, TrendingUp } from "lucide-react";
-import type { FormData, RecommendationType } from "@/app/home/page";
+import type { FormData, RecommendationType } from "@/app/page";
 import type { CarOption } from "./CarSelectionPage";
 
 type ResultsPageProps = {

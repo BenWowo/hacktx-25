@@ -1,103 +1,145 @@
-import Image from "next/image";
+"use client";
+import { useState } from "react";
+import HomePage from "@/components/HomePage";
+import FormPage from "@/components/FormPage";
+import LoadingScreen from "@/components/LoadingScreen";
+import CarSelectionPage, {
+	type CarOption,
+} from "@/components/CarSelectionPage";
+import ResultsPage from "@/components/ResultsPage";
+import PaymentAnalysisPage from "@/components/PaymentAnalysisPage";
 
-export default function Home() {
+export type FormData = {
+	creditScore: string;
+	annualIncome: string;
+	downPayment: string;
+	carPrice: string;
+	employmentStatus: string;
+	monthlyBudget: string;
+};
+
+export type RecommendationType = "finance" | "lease" | "purchase";
+
+export default function Page() {
+	const [currentStep, setCurrentStep] = useState<
+		| "home"
+		| "form"
+		| "loading"
+		| "carSelection"
+		| "loadingPayment"
+		| "results"
+		| "analysis"
+	>("home");
+	const [formData, setFormData] = useState<FormData>({
+		creditScore: "",
+		annualIncome: "",
+		downPayment: "",
+		carPrice: "",
+		employmentStatus: "",
+		monthlyBudget: "",
+	});
+	const [selectedCar, setSelectedCar] = useState<CarOption | null>(null);
+	const [selectedPaymentOption, setSelectedPaymentOption] =
+		useState<RecommendationType | null>(null);
+	const [recommendation, setRecommendation] =
+		useState<RecommendationType>("finance");
+
+	const handleGetStarted = () => {
+		setCurrentStep("form");
+	};
+
+	const handleFormSubmit = (data: FormData) => {
+		setFormData(data);
+		setCurrentStep("loading");
+
+		// Simulate loading time before showing car selection
+		setTimeout(() => {
+			setCurrentStep("carSelection");
+		}, 2000);
+	};
+
+	const handleCarSelect = (car: CarOption) => {
+		setSelectedCar(car);
+		setCurrentStep("loadingPayment");
+
+		// Calculate recommendation based on form data and selected car
+		const creditScore = parseInt(formData.creditScore);
+		const downPayment = parseFloat(formData.downPayment);
+		const carPrice = car.price;
+		const downPaymentPercent = (downPayment / carPrice) * 100;
+
+		let recommendedOption: RecommendationType = "finance";
+
+		if (creditScore >= 750 && downPaymentPercent >= 30) {
+			recommendedOption = "purchase";
+		} else if (creditScore < 650 || downPaymentPercent < 10) {
+			recommendedOption = "lease";
+		} else {
+			recommendedOption = "finance";
+		}
+
+		// Update formData with selected car price
+		setFormData((prev) => ({ ...prev, carPrice: car.price.toString() }));
+
+		// Simulate loading time
+		setTimeout(() => {
+			setRecommendation(recommendedOption);
+			setCurrentStep("results");
+		}, 2000);
+	};
+
+	const handlePaymentOptionSelect = (option: RecommendationType) => {
+		setSelectedPaymentOption(option);
+		setCurrentStep("analysis");
+	};
+
+	const handleBackToResults = () => {
+		setCurrentStep("results");
+	};
+
+	const handleBackToHome = () => {
+		setCurrentStep("home");
+		setFormData({
+			creditScore: "",
+			annualIncome: "",
+			downPayment: "",
+			carPrice: "",
+			employmentStatus: "",
+			monthlyBudget: "",
+		});
+		setSelectedCar(null);
+		setSelectedPaymentOption(null);
+	};
+
 	return (
-		<div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-			<main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-				<Image
-					className="dark:invert"
-					src="/next.svg"
-					alt="Next.js logo"
-					width={180}
-					height={38}
-					priority
+		<div className="min-h-screen bg-white">
+			{currentStep === "home" && <HomePage onGetStarted={handleGetStarted} />}
+			{currentStep === "form" && (
+				<FormPage onSubmit={handleFormSubmit} onBack={handleBackToHome} />
+			)}
+			{currentStep === "loading" && <LoadingScreen />}
+			{currentStep === "carSelection" && (
+				<CarSelectionPage onSelectCar={handleCarSelect} formData={formData} />
+			)}
+			{currentStep === "loadingPayment" && <LoadingScreen />}
+			{currentStep === "results" && (
+				<ResultsPage
+					formData={formData}
+					selectedCar={selectedCar}
+					recommendation={recommendation}
+					onSelectOption={handlePaymentOptionSelect}
+					onStartOver={handleBackToHome}
 				/>
-				<ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-					<li className="mb-2 tracking-[-.01em]">
-						Get started by editing{" "}
-						<code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-							src/app/page.tsx
-						</code>
-						.
-					</li>
-					<li className="tracking-[-.01em]">
-						Save and see your changes instantly.
-					</li>
-				</ol>
-
-				<div className="flex gap-4 items-center flex-col sm:flex-row">
-					<a
-						className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-						href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						<Image
-							className="dark:invert"
-							src="/vercel.svg"
-							alt="Vercel logomark"
-							width={20}
-							height={20}
-						/>
-						Deploy now
-					</a>
-					<a
-						className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-						href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-						target="_blank"
-						rel="noopener noreferrer"
-					>
-						Read our docs
-					</a>
-				</div>
-			</main>
-			<footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image
-						aria-hidden
-						src="/file.svg"
-						alt="File icon"
-						width={16}
-						height={16}
-					/>
-					Learn
-				</a>
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image
-						aria-hidden
-						src="/window.svg"
-						alt="Window icon"
-						width={16}
-						height={16}
-					/>
-					Examples
-				</a>
-				<a
-					className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-					href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					<Image
-						aria-hidden
-						src="/globe.svg"
-						alt="Globe icon"
-						width={16}
-						height={16}
-					/>
-					Go to nextjs.org →
-				</a>
-			</footer>
+			)}
+			{currentStep === "analysis" && (
+				<PaymentAnalysisPage
+					formData={formData}
+					selectedCar={selectedCar}
+					selectedOption={selectedPaymentOption || recommendation}
+					onBack={handleBackToResults}
+					onStartOver={handleBackToHome}
+				/>
+			)}
 		</div>
 	);
 }

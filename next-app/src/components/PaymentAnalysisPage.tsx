@@ -20,7 +20,7 @@ import {
 	LineChart,
 	Line,
 } from "recharts";
-import type { FormData, RecommendationType } from "@/app/home/page";
+import type { FormData, RecommendationType } from "@/app/page";
 import type { CarOption } from "./CarSelectionPage";
 
 type PaymentAnalysisPageProps = {
@@ -32,34 +32,44 @@ type PaymentAnalysisPageProps = {
 };
 
 // Custom tooltip for the line chart
-const HorizontalFixedTooltip = ({ active, payload, label, coordinate }: any) => {
-  if (!active || !payload || !payload.length || !coordinate) return null;
+const HorizontalFixedTooltip = ({
+	active,
+	payload,
+	label,
+	coordinate,
+}: any) => {
+	if (!active || !payload || !payload.length || !coordinate) return null;
 
-  return (
-    <div
-      style={{
-        position: 'absolute',
-        top: 0,
-        left: coordinate.x,
-        transform: 'translateX(-50%)',
-        backgroundColor: 'white',
-        border: '1px solid #e5e5e5',
-        borderRadius: '8px',
-        padding: '12px 16px',
-        pointerEvents: 'none',
-        whiteSpace: 'nowrap',
-        zIndex: 10,
-        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-      }}
-    >
-      <p style={{ marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>{label}</p>
-      {payload.map((entry: any, index: number) => (
-        <p key={index} style={{ color: entry.color, margin: '4px 0', fontSize: '13px' }}>
-          {entry.name}: ${entry.value.toFixed(0)}
-        </p>
-      ))}
-    </div>
-  );
+	return (
+		<div
+			style={{
+				position: "absolute",
+				top: 0,
+				left: coordinate.x,
+				transform: "translateX(-50%)",
+				backgroundColor: "white",
+				border: "1px solid #e5e5e5",
+				borderRadius: "8px",
+				padding: "12px 16px",
+				pointerEvents: "none",
+				whiteSpace: "nowrap",
+				zIndex: 10,
+				boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+			}}
+		>
+			<p style={{ marginBottom: "8px", fontWeight: "600", fontSize: "14px" }}>
+				{label}
+			</p>
+			{payload.map((entry: any, index: number) => (
+				<p
+					key={index}
+					style={{ color: entry.color, margin: "4px 0", fontSize: "13px" }}
+				>
+					{entry.name}: ${entry.value.toFixed(0)}
+				</p>
+			))}
+		</div>
+	);
 };
 
 export default function PaymentAnalysisPage({
@@ -163,15 +173,19 @@ export default function PaymentAnalysisPage({
 	const maxMonths = Math.max(leaseTerm, financeTerm);
 	const costOverTimeData = Array.from({ length: maxMonths }, (_, i) => {
 		const month = i + 1;
-		const leaseTotal = month <= leaseTerm ? leaseMonthly * month : leaseMonthly * leaseTerm;
-		const financeTotal = month <= financeTerm ? financeMonthly * month : financeMonthly * financeTerm;
+		const leaseTotal =
+			month <= leaseTerm ? leaseMonthly * month : leaseMonthly * leaseTerm;
+		const financeTotal =
+			month <= financeTerm
+				? financeMonthly * month
+				: financeMonthly * financeTerm;
 		const purchaseTotal = carPrice;
 
 		return {
 			month: `Month ${month}`,
 			Lease: leaseTotal,
 			Finance: financeTotal,
-			'Cash Purchase': purchaseTotal,
+			"Cash Purchase": purchaseTotal,
 		};
 	});
 
@@ -325,20 +339,22 @@ export default function PaymentAnalysisPage({
 								<YAxis stroke="#aaaaaa" />
 								<Tooltip
 									content={(props) => <HorizontalFixedTooltip {...props} />}
-									cursor={{ stroke: '#d71920', strokeWidth: 2 }}
+									cursor={{ stroke: "#d71920", strokeWidth: 2 }}
 								/>
 								<Legend />
 								{Object.keys(costOverTimeData[0])
-									.filter((key) => key !== 'month')
+									.filter((key) => key !== "month")
 									.map((key, i) => (
 										<Line
 											key={key}
 											type="monotone"
 											dataKey={key}
-											stroke={i === 0 ? '#d71920' : i === 1 ? '#000000' : '#888888'}
+											stroke={
+												i === 0 ? "#d71920" : i === 1 ? "#000000" : "#888888"
+											}
 											strokeWidth={3}
 											dot={false}
-											strokeDasharray={i === 2 ? '5 5' : undefined}
+											strokeDasharray={i === 2 ? "5 5" : undefined}
 										/>
 									))}
 							</LineChart>
