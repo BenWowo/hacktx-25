@@ -21,6 +21,26 @@ import {
 	AlertDialogTitle,
 	AlertDialogTrigger,
 } from "./ui/alert-dialog";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "./ui/select";
+import { DollarSign, CreditCard, Briefcase, TrendingUp } from "lucide-react";
+
+export type FormData = {
+	creditScore: string;
+	annualIncome: string;
+	downPayment: string;
+	carPrice: string;
+	employmentStatus: string;
+	monthlyBudget: string;
+};
 
 const Skiper19 = () => {
 	const ref = useRef<HTMLDivElement>(null);
@@ -56,6 +76,7 @@ const LinePath = ({
 	const rotation = useMotionValue(0); // rotation of the icon
 
 	// State for modal visibility
+	const [modal10, setModal10] = useState(false);
 	const [modal20, setModal20] = useState(false);
 	const [modal40, setModal40] = useState(false);
 	const [modal60, setModal60] = useState(false);
@@ -63,11 +84,39 @@ const LinePath = ({
 
 	// Track which modals have been shown to prevent re-showing
 	const [shownModals, setShownModals] = useState({
+		modal10: false,
 		modal20: false,
 		modal40: false,
 		modal60: false,
 		modal80: false,
 	});
+
+	// Form data state
+	const [formData, setFormData] = useState<FormData>({
+		creditScore: "",
+		annualIncome: "",
+		downPayment: "",
+		carPrice: "",
+		employmentStatus: "",
+		monthlyBudget: "",
+	});
+
+	// Form handling functions
+	const handleFormChange = (field: keyof FormData, value: string) => {
+		setFormData((prev) => ({ ...prev, [field]: value }));
+	};
+
+	const handleFormSubmit = (e: React.FormEvent) => {
+		e.preventDefault();
+		console.log("Form submitted:", formData);
+		// Close the modal after submission
+		setModal10(false);
+		// You can add additional logic here like saving data or navigating
+	};
+
+	const isFormValid = () => {
+		return Object.values(formData).every((value) => value !== "");
+	};
 
 	// Window size
 	const [windowSize, setWindowSize] = useState({ w: 0, h: 0 });
@@ -92,6 +141,12 @@ const LinePath = ({
 
 		// Check which modals should be shown based on scroll progress
 		// Only show each modal once by checking if it has been shown before
+
+		// 10% progress modal (9-11% range) - Form Modal
+		if (v >= 0.09 && v <= 0.11 && !shownModals.modal10) {
+			setModal10(true);
+			setShownModals((prev) => ({ ...prev, modal10: true }));
+		}
 
 		// 20% progress modal (19-21% range)
 		if (v >= 0.19 && v <= 0.21 && !shownModals.modal20) {
@@ -179,6 +234,183 @@ const LinePath = ({
 
 	return (
 		<>
+			{/* 10% Progress Modal - Form */}
+			{modal10 && (
+				<div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+					<AlertDialog open={modal10} onOpenChange={setModal10}>
+						<AlertDialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+							<AlertDialogHeader>
+								<AlertDialogTitle>Your Financial Profile</AlertDialogTitle>
+								<AlertDialogDescription>
+									Help us understand your situation to provide the best
+									recommendations for your car purchase journey.
+								</AlertDialogDescription>
+							</AlertDialogHeader>
+
+							<form onSubmit={handleFormSubmit} className="space-y-4">
+								{/* Credit Score */}
+								<div className="space-y-2">
+									<Label
+										htmlFor="creditScore"
+										className="flex items-center gap-2"
+									>
+										<CreditCard className="w-4 h-4 text-[#d71920]" />
+										Credit Score
+									</Label>
+									<Select
+										value={formData.creditScore}
+										onValueChange={(value) =>
+											handleFormChange("creditScore", value)
+										}
+									>
+										<SelectTrigger id="creditScore">
+											<SelectValue placeholder="Select your credit score range" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="300-579">Poor (300-579)</SelectItem>
+											<SelectItem value="580-669">Fair (580-669)</SelectItem>
+											<SelectItem value="670-739">Good (670-739)</SelectItem>
+											<SelectItem value="740-799">
+												Very Good (740-799)
+											</SelectItem>
+											<SelectItem value="800-850">
+												Exceptional (800-850)
+											</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+
+								{/* Annual Income */}
+								<div className="space-y-2">
+									<Label
+										htmlFor="annualIncome"
+										className="flex items-center gap-2"
+									>
+										<TrendingUp className="w-4 h-4 text-[#d71920]" />
+										Annual Income
+									</Label>
+									<div className="relative">
+										<DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+										<Input
+											id="annualIncome"
+											type="number"
+											placeholder="75000"
+											value={formData.annualIncome}
+											onChange={(e) =>
+												handleFormChange("annualIncome", e.target.value)
+											}
+											className="pl-9"
+										/>
+									</div>
+								</div>
+
+								{/* Employment Status */}
+								<div className="space-y-2">
+									<Label
+										htmlFor="employmentStatus"
+										className="flex items-center gap-2"
+									>
+										<Briefcase className="w-4 h-4 text-[#d71920]" />
+										Employment Status
+									</Label>
+									<Select
+										value={formData.employmentStatus}
+										onValueChange={(value) =>
+											handleFormChange("employmentStatus", value)
+										}
+									>
+										<SelectTrigger id="employmentStatus">
+											<SelectValue placeholder="Select your employment status" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="full-time">
+												Full-Time Employed
+											</SelectItem>
+											<SelectItem value="part-time">
+												Part-Time Employed
+											</SelectItem>
+											<SelectItem value="self-employed">
+												Self-Employed
+											</SelectItem>
+											<SelectItem value="retired">Retired</SelectItem>
+											<SelectItem value="other">Other</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+
+								{/* Car Price */}
+								<div className="space-y-2">
+									<Label htmlFor="carPrice">Estimated Car Price</Label>
+									<div className="relative">
+										<DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+										<Input
+											id="carPrice"
+											type="number"
+											placeholder="35000"
+											value={formData.carPrice}
+											onChange={(e) =>
+												handleFormChange("carPrice", e.target.value)
+											}
+											className="pl-9"
+										/>
+									</div>
+								</div>
+
+								{/* Down Payment */}
+								<div className="space-y-2">
+									<Label htmlFor="downPayment">Available Down Payment</Label>
+									<div className="relative">
+										<DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+										<Input
+											id="downPayment"
+											type="number"
+											placeholder="5000"
+											value={formData.downPayment}
+											onChange={(e) =>
+												handleFormChange("downPayment", e.target.value)
+											}
+											className="pl-9"
+										/>
+									</div>
+								</div>
+
+								{/* Monthly Budget */}
+								<div className="space-y-2">
+									<Label htmlFor="monthlyBudget">
+										Monthly Budget for Car Payment
+									</Label>
+									<div className="relative">
+										<DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+										<Input
+											id="monthlyBudget"
+											type="number"
+											placeholder="500"
+											value={formData.monthlyBudget}
+											onChange={(e) =>
+												handleFormChange("monthlyBudget", e.target.value)
+											}
+											className="pl-9"
+										/>
+									</div>
+								</div>
+							</form>
+
+							<AlertDialogFooter className="flex gap-2">
+								<AlertDialogCancel onClick={() => setModal10(false)}>
+									Skip for Now
+								</AlertDialogCancel>
+								<AlertDialogAction
+									onClick={handleFormSubmit}
+									disabled={!isFormValid()}
+									className="bg-[#d71920] hover:bg-[#a01419]"
+								>
+									Submit Profile
+								</AlertDialogAction>
+							</AlertDialogFooter>
+						</AlertDialogContent>
+					</AlertDialog>
+				</div>
+			)}
 			{/* 20% Progress Modal */}
 			{modal20 && (
 				<div className="fixed inset-0 z-50 flex items-center justify-center">
