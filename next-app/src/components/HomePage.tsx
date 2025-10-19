@@ -1,3 +1,4 @@
+"use client";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Button } from "./ui/button";
 
