@@ -40,8 +40,114 @@ export default function CarSelectionPage({
 	formData,
 }: CarSelectionPageProps) {
 	const monthlyBudget = parseFloat(formData.monthlyBudget);
-
 	const cars: CarOption[] = [
+		{
+			id: "prius",
+			name: "Toyota Prius",
+			model: "2024 Limited Hybrid",
+			price: 31500,
+			image:
+				"https://images.unsplash.com/photo-1617957723874-068ed3fdf1ed?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b3lvdGElMjBwcml1c3xlbnwxfHx8fDE3NjA4MjMwMzF8MA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+			badge: monthlyBudget < 500 ? "Eco Saver" : "Recommended",
+			specs: {
+				mpg: "52/56 MPG",
+				horsepower: "196 HP",
+				seats: "5 Seats",
+				transmission: "E-CVT",
+			},
+			features: [
+				"Hybrid Powertrain",
+				"Wireless Apple CarPlay",
+				"Adaptive Cruise Control",
+				"Heated Steering Wheel",
+			],
+		},
+		{
+			id: "4runner",
+			name: "Toyota 4Runner",
+			model: "2025 SR5",
+			price: 44220,
+			image:
+				"https://images.unsplash.com/photo-1619647137747-4a8f245e683f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b3lvdGElMjA0cnVubmVyfGVufDF8fHx8MTc2MDgyMzAzMXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+			badge: monthlyBudget > 700 ? "Adventure Pick" : undefined,
+			specs: {
+				mpg: "16/19 MPG",
+				horsepower: "278 HP",
+				seats: "5 Seats",
+				transmission: "5-Speed Auto",
+			},
+			features: [
+				"Off-Road Suspension",
+				"Roof Rails",
+				"Apple CarPlay",
+				"Tow Package",
+			],
+		},
+		{
+			id: "highlander",
+			name: "Toyota Highlander",
+			model: "2025 XLE",
+			price: 41500,
+			image:
+				"https://images.unsplash.com/photo-1623942855238-3d2a6b988fb0?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b3lvdGElMjBoaWdobGFuZGVyfGVufDF8fHx8MTc2MDgyMzAzMXww&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+			badge: monthlyBudget > 650 ? "Family Favorite" : undefined,
+			specs: {
+				mpg: "22/29 MPG",
+				horsepower: "265 HP",
+				seats: "7 Seats",
+				transmission: "8-Speed Auto",
+			},
+			features: [
+				"Three-Zone Climate Control",
+				"Power Moonroof",
+				"Smart Key System",
+				"Blind Spot Monitor",
+			],
+		},
+		{
+			id: "tacoma",
+			name: "Toyota Tacoma",
+			model: "2024 TRD Sport",
+			price: 38900,
+			image:
+				"https://images.unsplash.com/photo-1600195077071-1fd5bcb4c569?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b3lvdGElMjB0YWNvbWF8ZW58MXx8fHwxNzYwODIzMDMxfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+			badge: monthlyBudget > 600 ? "Off-Road Ready" : undefined,
+			specs: {
+				mpg: "18/23 MPG",
+				horsepower: "278 HP",
+				seats: "5 Seats",
+				transmission: "6-Speed Auto",
+			},
+			features: [
+				"4x4 Capability",
+				"LED Headlights",
+				"Sport-Tuned Suspension",
+				"Bed Lighting",
+			],
+		},
+		{
+			id: "sienna",
+			name: "Toyota Sienna",
+			model: "2024 Platinum Hybrid",
+			price: 50500,
+			image:
+				"https://images.unsplash.com/photo-1636900703582-26c27a08b062?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHx0b3lvdGElMjBzaWVubmF8ZW58MXx8fHwxNzYwODIzMDMxfDA&ixlib=rb-4.1.0&q=80&w=1080&utm_source=figma&utm_medium=referral",
+			badge: monthlyBudget > 700 ? "Luxury Hybrid" : "Recommended",
+			specs: {
+				mpg: "36/36 MPG",
+				horsepower: "245 HP",
+				seats: "7 Seats",
+				transmission: "E-CVT Hybrid",
+			},
+			features: [
+				"Hands-Free Liftgate",
+				"All-Wheel Drive",
+				"Rear-Seat Entertainment",
+				"Heated & Ventilated Seats",
+			],
+		},
+	];
+	const cars_old: CarOption[] = [
 		{
 			id: "corolla",
 			name: "Toyota Corolla",
