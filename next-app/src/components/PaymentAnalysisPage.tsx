@@ -31,6 +31,37 @@ type PaymentAnalysisPageProps = {
 	onStartOver: () => void;
 };
 
+// Custom tooltip for the line chart
+const HorizontalFixedTooltip = ({ active, payload, label, coordinate }: any) => {
+  if (!active || !payload || !payload.length || !coordinate) return null;
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: coordinate.x,
+        transform: 'translateX(-50%)',
+        backgroundColor: 'white',
+        border: '1px solid #e5e5e5',
+        borderRadius: '8px',
+        padding: '12px 16px',
+        pointerEvents: 'none',
+        whiteSpace: 'nowrap',
+        zIndex: 10,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+      }}
+    >
+      <p style={{ marginBottom: '8px', fontWeight: '600', fontSize: '14px' }}>{label}</p>
+      {payload.map((entry: any, index: number) => (
+        <p key={index} style={{ color: entry.color, margin: '4px 0', fontSize: '13px' }}>
+          {entry.name}: ${entry.value.toFixed(0)}
+        </p>
+      ))}
+    </div>
+  );
+};
+
 export default function PaymentAnalysisPage({
 	formData,
 	selectedCar,
@@ -127,6 +158,22 @@ export default function PaymentAnalysisPage({
 		"Total Cost": opt.totalPaid,
 		Upfront: opt.upfront,
 	}));
+
+	// Cost over time data for line chart
+	const maxMonths = Math.max(leaseTerm, financeTerm);
+	const costOverTimeData = Array.from({ length: maxMonths }, (_, i) => {
+		const month = i + 1;
+		const leaseTotal = month <= leaseTerm ? leaseMonthly * month : leaseMonthly * leaseTerm;
+		const financeTotal = month <= financeTerm ? financeMonthly * month : financeMonthly * financeTerm;
+		const purchaseTotal = carPrice;
+
+		return {
+			month: `Month ${month}`,
+			Lease: leaseTotal,
+			Finance: financeTotal,
+			'Cash Purchase': purchaseTotal,
+		};
+	});
 
 	// Get reasons for recommendation
 	const getRecommendationReasons = (): string[] => {
@@ -264,6 +311,40 @@ export default function PaymentAnalysisPage({
 						</CardContent>
 					</Card>
 				</div>
+
+				{/* Cost Over Time Line Chart */}
+				<Card className="mb-8">
+					<CardHeader>
+						<CardTitle>Cost Over Time Comparison</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<ResponsiveContainer width="100%" height={400}>
+							<LineChart data={costOverTimeData}>
+								<CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+								<XAxis dataKey="month" stroke="#aaaaaa" />
+								<YAxis stroke="#aaaaaa" />
+								<Tooltip
+									content={(props) => <HorizontalFixedTooltip {...props} />}
+									cursor={{ stroke: '#d71920', strokeWidth: 2 }}
+								/>
+								<Legend />
+								{Object.keys(costOverTimeData[0])
+									.filter((key) => key !== 'month')
+									.map((key, i) => (
+										<Line
+											key={key}
+											type="monotone"
+											dataKey={key}
+											stroke={i === 0 ? '#d71920' : i === 1 ? '#000000' : '#888888'}
+											strokeWidth={3}
+											dot={false}
+											strokeDasharray={i === 2 ? '5 5' : undefined}
+										/>
+									))}
+							</LineChart>
+						</ResponsiveContainer>
+					</CardContent>
+				</Card>
 
 				{/* Monthly Payment Comparison Chart */}
 				<Card className="mb-8">
