@@ -20,7 +20,7 @@ import {
 	LineChart,
 	Line,
 } from "recharts";
-import type { FormData, RecommendationType } from "@/app/page";
+import type { FormData, RecommendationType } from "@/app/home/page";
 import type { CarOption } from "./CarSelectionPage";
 
 type PaymentAnalysisPageProps = {
