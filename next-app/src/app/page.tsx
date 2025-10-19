@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { motion, AnimatePresence } from "framer-motion";
 import HomePage from "@/components/HomePage";
 import FormPage from "@/components/FormPage";
 import LoadingScreen from "@/components/LoadingScreen";
@@ -23,6 +24,7 @@ export type RecommendationType = "finance" | "lease" | "purchase";
 
 export default function Page() {
 	const router = useRouter();
+	const searchParams = useSearchParams();
 	const [currentStep, setCurrentStep] = useState<
 		| "home"
 		| "form"
@@ -32,6 +34,14 @@ export default function Page() {
 		| "results"
 		| "analysis"
 	>("home");
+
+	// On mount, if ?view=carSelection is present, start at carSelection
+	useEffect(() => {
+		const view = searchParams?.get("view");
+		if (view === "carSelection") {
+			setCurrentStep("carSelection");
+		}
+	}, [searchParams]);
 	const [formData, setFormData] = useState<FormData>({
 		creditScore: "",
 		annualIncome: "",
@@ -41,10 +51,12 @@ export default function Page() {
 		monthlyBudget: "",
 	});
 	const [selectedCar, setSelectedCar] = useState<CarOption | null>(null);
+	const [selectedExplanation, setSelectedExplanation] = useState<string | null>(null);
 	const [selectedPaymentOption, setSelectedPaymentOption] =
 		useState<RecommendationType | null>(null);
 	const [recommendation, setRecommendation] =
 		useState<RecommendationType>("finance");
+	const [paymentAdvice, setPaymentAdvice] = useState<string | null>(null);
 
 	const handleGetStarted = () => {
 		router.push("/track");
@@ -54,10 +66,24 @@ export default function Page() {
 		setFormData(data);
 		setCurrentStep("loading");
 
-		// Simulate loading time before showing car selection
-		setTimeout(() => {
-			setCurrentStep("carSelection");
-		}, 2000);
+		// Call API to pick best car
+		(async () => {
+			try {
+				const res = await fetch('/api/choose-car', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(data),
+				});
+				const json = await res.json();
+				if (json?.car) setSelectedCar(json.car as CarOption);
+				if (json?.explanation) setSelectedExplanation(json.explanation as string);
+			} catch (err) {
+				console.error('choose-car API failed', err);
+			} finally {
+				// small delay to show loading
+				setTimeout(() => setCurrentStep('carSelection'), 800);
+			}
+		})();
 	};
 
 	const handleCarSelect = (car: CarOption) => {
@@ -92,7 +118,22 @@ export default function Page() {
 
 	const handlePaymentOptionSelect = (option: RecommendationType) => {
 		setSelectedPaymentOption(option);
-		setCurrentStep("analysis");
+		// fetch advice from API
+		(async () => {
+			try {
+				const res = await fetch('/api/payment-advice', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ formData, selectedCar, selectedOption: option }),
+				});
+				const json = await res.json();
+				if (json?.advice) setPaymentAdvice(json.advice as string);
+			} catch (err) {
+				console.error('payment-advice API failed', err);
+			} finally {
+				setCurrentStep('analysis');
+			}
+		})();
 	};
 
 	const handleBackToResults = () => {
@@ -115,33 +156,61 @@ export default function Page() {
 
 	return (
 		<div className="min-h-screen bg-white">
-			{currentStep === "home" && <HomePage onGetStarted={handleGetStarted} />}
-			{currentStep === "form" && (
-				<FormPage onSubmit={handleFormSubmit} onBack={handleBackToHome} />
-			)}
-			{currentStep === "loading" && <LoadingScreen />}
-			{currentStep === "carSelection" && (
-				<CarSelectionPage onSelectCar={handleCarSelect} formData={formData} />
-			)}
-			{currentStep === "loadingPayment" && <LoadingScreen />}
-			{currentStep === "results" && (
-				<ResultsPage
-					formData={formData}
-					selectedCar={selectedCar}
-					recommendation={recommendation}
-					onSelectOption={handlePaymentOptionSelect}
-					onStartOver={handleBackToHome}
-				/>
-			)}
-			{currentStep === "analysis" && (
-				<PaymentAnalysisPage
-					formData={formData}
-					selectedCar={selectedCar}
-					selectedOption={selectedPaymentOption || recommendation}
-					onBack={handleBackToResults}
-					onStartOver={handleBackToHome}
-				/>
-			)}
+			<AnimatePresence mode="wait">
+				{currentStep === "home" && (
+					<motion.div key="home" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+						<HomePage onGetStarted={handleGetStarted} />
+					</motion.div>
+				)}
+
+				{currentStep === "form" && (
+					<motion.div key="form" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }}>
+						<FormPage onSubmit={handleFormSubmit} onBack={handleBackToHome} />
+					</motion.div>
+				)}
+
+				{currentStep === "loading" && (
+					<motion.div key="loading" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+						<LoadingScreen />
+					</motion.div>
+				)}
+
+				{currentStep === "carSelection" && (
+					<motion.div key="carSelection" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+						<CarSelectionPage onSelectCar={handleCarSelect} formData={formData} />
+					</motion.div>
+				)}
+
+				{currentStep === "loadingPayment" && (
+					<motion.div key="loadingPayment" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+						<LoadingScreen />
+					</motion.div>
+				)}
+
+				{currentStep === "results" && (
+					<motion.div key="results" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+						<ResultsPage
+							formData={formData}
+							selectedCar={selectedCar}
+							recommendation={recommendation}
+							onSelectOption={handlePaymentOptionSelect}
+							onStartOver={handleBackToHome}
+						/>
+					</motion.div>
+				)}
+
+				{currentStep === "analysis" && (
+					<motion.div key="analysis" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+						<PaymentAnalysisPage
+							formData={formData}
+							selectedCar={selectedCar}
+							selectedOption={selectedPaymentOption || recommendation}
+							onBack={handleBackToResults}
+							onStartOver={handleBackToHome}
+						/>
+					</motion.div>
+				)}
+			</AnimatePresence>
 		</div>
 	);
 }

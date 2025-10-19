@@ -10,6 +10,7 @@ import {
 	MotionValue,
 } from "framer-motion";
 import React, { useRef, useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -119,7 +120,6 @@ const LinePath = ({
 	const [modal40, setModal40] = useState(false);
 	const [modal60, setModal60] = useState(false);
 	const [modal80, setModal80] = useState(false);
-	const [modal100, setModal100] = useState(false);
 
 	// Track which modals have been shown to prevent re-showing
 	const [shownModals, setShownModals] = useState({
@@ -128,8 +128,10 @@ const LinePath = ({
 		modal40: false,
 		modal60: false,
 		modal80: false,
-		modal100: false,
 	});
+
+	// Whether we've already navigated to the car selection page (to avoid repeated pushes)
+	const [navigatedToCarSelection, setNavigatedToCarSelection] = useState(false);
 
 	// Form data state
 	const [formData, setFormData] = useState<FormData>({
@@ -219,8 +221,6 @@ const LinePath = ({
 		console.log("Car selected:", car);
 		// Update form data with selected car price
 		setFormData((prev) => ({ ...prev, carPrice: car.price.toString() }));
-		// Close the modal
-		setModal100(false);
 		// You can add additional logic here like navigating to payment options
 	};
 
@@ -311,6 +311,8 @@ const LinePath = ({
 
 	// Update camera and icon rotation as path progresses
 	const lookAhead = -15;
+	const router = useRouter();
+
 	useMotionValueEvent(scrollYProgress, "change", (v: number) => {
 		if (!pathRef.current) return;
 
@@ -349,10 +351,10 @@ const LinePath = ({
 			setShownModals((prev) => ({ ...prev, modal80: true }));
 		}
 
-		// 100% progress modal (99-100% range) - Car Selection Modal
-		if (v >= 0.99 && v <= 1.0 && !shownModals.modal100) {
-			setModal100(true);
-			setShownModals((prev) => ({ ...prev, modal100: true }));
+		// 100% progress (navigate to car selection once)
+		if (v >= 0.99 && v <= 1.0 && !navigatedToCarSelection) {
+			setNavigatedToCarSelection(true);
+			router.push("/?view=carSelection");
 		}
 
 		const path = pathRef.current;
@@ -627,133 +629,7 @@ const LinePath = ({
 				</div>
 			)}
 
-			{/* 100% Progress Modal - Car Selection */}
-			{modal100 && (
-				<div className="fixed inset-0 z-50 flex items-center justify-center p-2">
-					<AlertDialog open={modal100} onOpenChange={setModal100}>
-						<AlertDialogContent className="max-w-[95vw] w-full max-h-[95vh] overflow-y-auto">
-							<AlertDialogHeader>
-								<AlertDialogTitle className="text-2xl">
-									Your Perfect Toyota Match
-								</AlertDialogTitle>
-								<AlertDialogDescription>
-									Based on your profile, we've selected these vehicles for you.
-									Current progress: {Math.round(scrollYProgress.get() * 100)}%
-								</AlertDialogDescription>
-							</AlertDialogHeader>
-
-							<div className="grid md:grid-cols-3 gap-6 py-4">
-								{getCarOptions().map((car) => {
-									const estimatedMonthly = (car.price * 0.02).toFixed(0);
-
-									return (
-										<Card
-											key={car.id}
-											className="relative overflow-hidden hover:shadow-lg transition-all duration-300 group"
-										>
-											{car.badge && (
-												<div className="absolute top-4 right-4 z-10">
-													<Badge className="bg-[#d71920] text-white px-3 py-1">
-														{car.badge}
-													</Badge>
-												</div>
-											)}
-
-											<CardHeader className="p-0">
-												<div className="h-32 overflow-hidden bg-gray-100">
-													<ImageWithFallback
-														src={car.image}
-														alt={car.name}
-														className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-													/>
-												</div>
-											</CardHeader>
-
-											<CardContent className="p-4">
-												<CardTitle className="text-lg mb-1">
-													{car.name}
-												</CardTitle>
-												<CardDescription className="mb-3">
-													{car.model}
-												</CardDescription>
-
-												<div className="mb-4">
-													<p className="text-sm text-gray-500 mb-1">
-														Starting MSRP
-													</p>
-													<p className="font-bold text-gray-900">
-														${car.price.toLocaleString()}
-													</p>
-													<p className="text-sm text-gray-500 mt-1">
-														Est. ${estimatedMonthly}/mo
-													</p>
-												</div>
-
-												<div className="grid grid-cols-2 gap-2 mb-4 text-xs">
-													<div className="flex items-center gap-1">
-														<Fuel className="w-3 h-3 text-[#d71920]" />
-														<span className="text-gray-700">
-															{car.specs.mpg}
-														</span>
-													</div>
-													<div className="flex items-center gap-1">
-														<Gauge className="w-3 h-3 text-[#d71920]" />
-														<span className="text-gray-700">
-															{car.specs.horsepower}
-														</span>
-													</div>
-													<div className="flex items-center gap-1">
-														<Users className="w-3 h-3 text-[#d71920]" />
-														<span className="text-gray-700">
-															{car.specs.seats}
-														</span>
-													</div>
-													<div className="flex items-center gap-1">
-														<Cog className="w-3 h-3 text-[#d71920]" />
-														<span className="text-gray-700">
-															{car.specs.transmission}
-														</span>
-													</div>
-												</div>
-
-												<div className="space-y-1 mb-4">
-													<p className="text-xs text-gray-600">Key Features:</p>
-													<ul className="space-y-1">
-														{car.features.slice(0, 2).map((feature, idx) => (
-															<li
-																key={idx}
-																className="text-xs text-gray-700 flex items-start"
-															>
-																<span className="text-[#d71920] mr-1">•</span>
-																{feature}
-															</li>
-														))}
-													</ul>
-												</div>
-											</CardContent>
-
-											<CardFooter className="p-4 pt-0">
-												<Button
-													onClick={() => handleCarSelect(car)}
-													className="w-full bg-[#d71920] hover:bg-[#a01419] text-white text-sm"
-												>
-													Select This Car
-												</Button>
-											</CardFooter>
-										</Card>
-									);
-								})}
-							</div>
-
-							<AlertDialogFooter className="flex gap-2">
-								<AlertDialogCancel onClick={() => setModal100(false)}>
-									Browse Later
-								</AlertDialogCancel>
-							</AlertDialogFooter>
-						</AlertDialogContent>
-					</AlertDialog>
-				</div>
-			)}
+			{/* modal100 removed: navigation occurs instead at 100% */}
 			<svg
 				width="2400"
 				height="2400"

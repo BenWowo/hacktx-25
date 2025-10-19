@@ -29,6 +29,7 @@ type PaymentAnalysisPageProps = {
 	selectedOption: RecommendationType;
 	onBack: () => void;
 	onStartOver: () => void;
+	advice?: string | null;
 };
 
 // Custom tooltip for the line chart
@@ -78,6 +79,7 @@ export default function PaymentAnalysisPage({
 	selectedOption,
 	onBack,
 	onStartOver,
+	advice,
 }: PaymentAnalysisPageProps) {
 	const carPrice = selectedCar
 		? selectedCar.price
@@ -267,6 +269,18 @@ export default function PaymentAnalysisPage({
 				</div>
 
 				{/* Key Metrics */}
+				{advice && (
+					<Card className="mb-6">
+						<CardHeader>
+							<CardTitle>Personalized Financial Advice</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<div className="prose text-sm text-gray-700 whitespace-pre-wrap">
+								{advice}
+							</div>
+						</CardContent>
+					</Card>
+				)}
 				<div className="grid md:grid-cols-3 gap-6 mb-12">
 					<Card>
 						<CardHeader className="pb-3">
@@ -361,72 +375,6 @@ export default function PaymentAnalysisPage({
 						</ResponsiveContainer>
 					</CardContent>
 				</Card>
-
-				{/* Monthly Payment Comparison Chart */}
-				<Card className="mb-8">
-					<CardHeader>
-						<CardTitle>Monthly Payment Comparison</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<ResponsiveContainer width="100%" height={300}>
-							<BarChart data={monthlyComparisonData}>
-								<CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-								<XAxis dataKey="name" stroke="#aaaaaa" />
-								<YAxis stroke="#aaaaaa" />
-								<Tooltip
-									contentStyle={{
-										backgroundColor: "white",
-										border: "1px solid #e5e5e5",
-										borderRadius: "8px",
-									}}
-								/>
-								<Legend />
-								<Bar
-									dataKey="Monthly Payment"
-									fill="#d71920"
-									radius={[8, 8, 0, 0]}
-								/>
-								<Bar
-									dataKey="Interest Rate"
-									fill="#000000"
-									radius={[8, 8, 0, 0]}
-								/>
-							</BarChart>
-						</ResponsiveContainer>
-					</CardContent>
-				</Card>
-
-				{/* Total Cost Comparison Chart */}
-				<Card className="mb-8">
-					<CardHeader>
-						<CardTitle>Total Cost Breakdown</CardTitle>
-					</CardHeader>
-					<CardContent>
-						<ResponsiveContainer width="100%" height={300}>
-							<BarChart data={totalCostData}>
-								<CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-								<XAxis dataKey="name" stroke="#aaaaaa" />
-								<YAxis stroke="#aaaaaa" />
-								<Tooltip
-									contentStyle={{
-										backgroundColor: "white",
-										border: "1px solid #e5e5e5",
-										borderRadius: "8px",
-									}}
-									formatter={(value: number) => `$${value.toFixed(0)}`}
-								/>
-								<Legend />
-								<Bar
-									dataKey="Total Cost"
-									fill="#d71920"
-									radius={[8, 8, 0, 0]}
-								/>
-								<Bar dataKey="Upfront" fill="#bbbbbb" radius={[8, 8, 0, 0]} />
-							</BarChart>
-						</ResponsiveContainer>
-					</CardContent>
-				</Card>
-
 				{/* Why This Option */}
 				<Card className="mb-8">
 					<CardHeader>

@@ -1,3 +1,4 @@
+import React from "react";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { Button } from "./ui/button";
 import {
@@ -33,13 +34,30 @@ type CarSelectionPageProps = {
 		monthlyBudget: string;
 		creditScore: string;
 	};
+	selectedCar?: CarOption | null;
+	explanation?: string | null;
 };
 
 export default function CarSelectionPage({
 	onSelectCar,
 	formData,
+	selectedCar,
+	explanation,
 }: CarSelectionPageProps) {
 	const monthlyBudget = parseFloat(formData.monthlyBudget);
+
+	// refs for auto-scroll
+	const containerRef = React.useRef<HTMLDivElement | null>(null);
+	const cardRefs = React.useRef<Record<string, HTMLDivElement | null>>({});
+
+	React.useEffect(() => {
+		if (selectedCar && containerRef.current && cardRefs.current[selectedCar.id]) {
+			const el = cardRefs.current[selectedCar.id];
+			if (el) {
+				el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+			}
+		}
+	}, [selectedCar]);
 
 	const cars: CarOption[] = [
 		{
@@ -117,19 +135,30 @@ export default function CarSelectionPage({
 					</p>
 				</div>
 
-				<div className="grid md:grid-cols-3 gap-8">
+				<div ref={containerRef} className="grid md:grid-cols-3 gap-8">
 					{cars.map((car) => {
 						const estimatedMonthly = (car.price * 0.02).toFixed(0); // Rough estimate
+						const isSelected = selectedCar?.id === car.id;
 
 						return (
-							<Card
+							<div
 								key={car.id}
-								className="relative overflow-hidden hover:shadow-xl transition-all duration-300 group"
+								ref={(el) => { cardRefs.current[car.id] = el; }}
+								className={`relative ${isSelected ? 'ring-4 ring-[#d71920]/40' : ''}`}
 							>
+								<Card className="relative overflow-hidden hover:shadow-xl transition-all duration-300 group">
 								{car.badge && (
 									<div className="absolute top-4 right-4 z-10">
 										<Badge className="bg-[#d71920] text-white px-3 py-1">
 											{car.badge}
+										</Badge>
+									</div>
+								)}
+
+								{isSelected && (
+									<div className="absolute top-4 left-4 z-10">
+										<Badge className="bg-amber-500 text-white px-3 py-1">
+											Recommended for you
 										</Badge>
 									</div>
 								)}
@@ -199,7 +228,7 @@ export default function CarSelectionPage({
 									</div>
 								</CardContent>
 
-								<CardFooter className="p-6 pt-0">
+										<CardFooter className="p-6 pt-0">
 									<Button
 										onClick={() => onSelectCar(car)}
 										className="w-full bg-black hover:bg-gray-900 text-white"
@@ -207,10 +236,18 @@ export default function CarSelectionPage({
 										View Payment Options
 									</Button>
 								</CardFooter>
-							</Card>
+									</Card>
+							</div>
 						);
 					})}
 				</div>
+
+				{explanation && (
+					<div className="mt-6 p-4 bg-yellow-50 border border-yellow-100 rounded">
+						<h3 className="font-semibold">Recommendation</h3>
+						<p className="text-sm text-gray-700 mt-2">{explanation}</p>
+					</div>
+				)}
 
 				<div className="text-center mt-12">
 					<p className="text-sm text-[#aaaaaa]">
